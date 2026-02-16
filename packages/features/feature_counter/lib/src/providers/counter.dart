@@ -1,4 +1,5 @@
 import 'package:factory_async/factory_async.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../models/counter_state.dart';
@@ -10,7 +11,7 @@ part 'counter.g.dart';
 ///
 /// Override this in your app to supply the real or fake implementation.
 @Riverpod(keepAlive: true)
-CounterRepository counterRepository(CounterRepositoryRef ref) {
+CounterRepository counterRepository(Ref ref) {
   throw UnimplementedError(
     'counterRepositoryProvider must be overridden with a concrete implementation.',
   );
@@ -58,6 +59,11 @@ class Counter extends _$Counter {
       (failure) => state = AsyncState.error(failure),
       (count) => state = AsyncState.success(CounterState(count: count)),
     );
+  }
+
+  Future<void> refresh() async {
+    state = const AsyncState.loading();
+    await _fetch();
   }
 
   Future<void> reset() async {

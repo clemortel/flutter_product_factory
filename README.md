@@ -105,8 +105,7 @@ flutter_product_factory/
 │   ├── widgetbook/factory_widgetbook/ # Component catalog
 │   └── tooling/cli/                  # Dart CLI scaffolder
 ├── docs/                            # Architecture & CLI docs
-├── melos.yaml                       # Monorepo configuration
-└── pubspec.yaml                     # Workspace root
+└── pubspec.yaml                     # Workspace root + Melos config
 ```
 
 ## Commands

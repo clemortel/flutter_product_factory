@@ -15,9 +15,9 @@ class DoctorCommand extends Command<void> {
     stdout.writeln('Flutter Product Factory — Doctor\n');
 
     final List<_Check> checks = [
-      _Check('Flutter', 'flutter', ['--version']),
-      _Check('Dart', 'dart', ['--version']),
-      _Check('Melos', 'melos', ['--version']),
+      const _Check('Flutter', 'flutter', ['--version']),
+      const _Check('Dart', 'dart', ['--version']),
+      const _Check('Melos', 'melos', ['--version']),
     ];
 
     bool allPassed = true;

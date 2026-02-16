@@ -23,12 +23,22 @@ class WidgetbookApp extends StatelessWidget {
             WidgetbookTheme(name: 'Dark', data: FactoryTheme.dark()),
           ],
         ),
-        DeviceFrameAddon(
-          devices: [
-            Devices.ios.iPhone13,
-            Devices.android.samsungGalaxyS20,
-          ],
-        ),
+        ViewportAddon([
+          const ViewportData(
+            name: 'iPhone 13',
+            width: 390,
+            height: 844,
+            pixelRatio: 3,
+            platform: TargetPlatform.iOS,
+          ),
+          const ViewportData(
+            name: 'Samsung Galaxy S20',
+            width: 360,
+            height: 800,
+            pixelRatio: 3,
+            platform: TargetPlatform.android,
+          ),
+        ]),
       ],
       directories: [
         WidgetbookCategory(

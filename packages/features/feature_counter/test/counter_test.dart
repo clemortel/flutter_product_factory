@@ -1,9 +1,9 @@
 import 'package:factory_async/factory_async.dart';
 import 'package:factory_core/factory_core.dart';
 import 'package:feature_counter/feature_counter.dart';
-import 'package:feature_counter/src/providers/counter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mockito/mockito.dart';
 
 void main() {
   provideDummy<Either<Failure, int>>(const Right(0));
@@ -23,10 +23,15 @@ void main() {
 
     tearDown(() => container.dispose());
 
-    test('should start with loading then transition to success', () async {
-      // The notifier auto-fetches on build.
-      // Give the microtask a chance to complete.
-      await Future<void>.delayed(Duration.zero);
+    test('should start in loading state on build', () {
+      final AsyncState<CounterState> state =
+          container.read(counterProvider);
+      expect(state, isA<AsyncStateLoading<CounterState>>());
+    });
+
+    test('should emit success state after refresh', () async {
+      // Use refresh() which is awaitable.
+      await container.read(counterProvider.notifier).refresh();
 
       final AsyncState<CounterState> state =
           container.read(counterProvider);
@@ -35,7 +40,7 @@ void main() {
     });
 
     test('should increment the counter', () async {
-      await Future<void>.delayed(Duration.zero);
+      await container.read(counterProvider.notifier).refresh();
       await container.read(counterProvider.notifier).increment();
 
       final AsyncState<CounterState> state =
@@ -44,7 +49,7 @@ void main() {
     });
 
     test('should decrement the counter', () async {
-      await Future<void>.delayed(Duration.zero);
+      await container.read(counterProvider.notifier).refresh();
       await container.read(counterProvider.notifier).increment();
       await container.read(counterProvider.notifier).decrement();
 
@@ -54,7 +59,7 @@ void main() {
     });
 
     test('should reset the counter', () async {
-      await Future<void>.delayed(Duration.zero);
+      await container.read(counterProvider.notifier).refresh();
       await container.read(counterProvider.notifier).increment();
       await container.read(counterProvider.notifier).increment();
       await container.read(counterProvider.notifier).reset();
