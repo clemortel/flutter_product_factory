@@ -33,12 +33,28 @@ melos:
         concurrency: 8
 
     test:
-      description: Run tests in all packages
+      description: Run all tests (Dart + Flutter)
+      steps:
+        - test:dart
+        - test:flutter
+
+    test:dart:
+      description: Run tests in pure-Dart packages
+      run: dart test
+      exec:
+        concurrency: 8
+      packageFilters:
+        dirExists: test
+        noDependsOn: flutter
+
+    test:flutter:
+      description: Run tests in Flutter packages
       run: flutter test
       exec:
         concurrency: 4
       packageFilters:
         dirExists: test
+        dependsOn: flutter
 
     build_runner:
       description: Run build_runner in packages that need code generation

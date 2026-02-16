@@ -12,7 +12,7 @@ flutter --version   # >= 3.8.0
 dart pub global activate melos
 
 # Setup
-git clone <this-repo>
+git clone https://github.com/clemortel/flutter_product_factory.git
 cd flutter_product_factory
 melos bootstrap
 melos run build_runner
@@ -30,8 +30,8 @@ flutter run
 # From within the repo (local development)
 dart pub global activate --source path packages/tooling/cli
 
-# From git (once published)
-dart pub global activate --source git <repo-url> --git-path packages/tooling/cli
+# From git
+dart pub global activate --source git https://github.com/clemortel/flutter_product_factory.git --git-path packages/tooling/cli
 
 # Then use it from anywhere inside the monorepo
 factory doctor

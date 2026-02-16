@@ -54,7 +54,7 @@ class AddFeatureCommand extends Command<void> {
 
     stdout.writeln('');
     stdout.writeln('Done! Next steps:');
-    stdout.writeln('  melos bootstrap');
-    stdout.writeln('  melos run build_runner');
+    stdout.writeln('  1. melos bootstrap');
+    stdout.writeln('  2. melos run build_runner');
   }
 }

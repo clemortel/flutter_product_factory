@@ -62,6 +62,6 @@ class AddPartCommand extends Command<void> {
 
     stdout.writeln('');
     stdout.writeln('Done! Next steps:');
-    stdout.writeln('  melos bootstrap');
+    stdout.writeln('  1. melos bootstrap');
   }
 }

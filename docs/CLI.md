@@ -10,8 +10,8 @@ The Factory CLI scaffolds new apps, features, and parts into your monorepo. It a
 # From a local clone
 dart pub global activate --source path packages/tooling/cli
 
-# From git (once repo is published)
-dart pub global activate --source git <repo-url> --git-path packages/tooling/cli
+# From git
+dart pub global activate --source git https://github.com/clemortel/flutter_product_factory.git --git-path packages/tooling/cli
 ```
 
 After activation, the `factory` command is available globally. Run it from anywhere inside the monorepo root.
