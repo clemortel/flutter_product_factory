@@ -4,6 +4,7 @@ import 'package:args/command_runner.dart';
 import 'package:path/path.dart' as p;
 
 import '../templates/feature_template.dart';
+import '../utils/workspace_updater.dart';
 
 /// Scaffolds a new feature package.
 class AddFeatureCommand extends Command<void> {
@@ -45,9 +46,15 @@ class AddFeatureCommand extends Command<void> {
       featureName: featureName,
       outputPath: packagePath,
     );
+
+    final bool added = addToWorkspace(packagePath);
+    if (added) {
+      stdout.writeln('Added "$packagePath" to workspace in root pubspec.yaml.');
+    }
+
+    stdout.writeln('');
     stdout.writeln('Done! Next steps:');
-    stdout.writeln('  1. Add "$packagePath" to the workspace in root pubspec.yaml');
-    stdout.writeln('  2. Run: melos bootstrap');
-    stdout.writeln('  3. Run: melos run build_runner');
+    stdout.writeln('  melos bootstrap');
+    stdout.writeln('  melos run build_runner');
   }
 }

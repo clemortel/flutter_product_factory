@@ -2,7 +2,7 @@
 
 A production-ready Flutter monorepo template with a Dart CLI that scaffolds new apps, features, and parts.
 
-Demonstrates layered architecture with Riverpod 3 codegen, backend-agnostic platform abstractions, and clean separation of concerns.
+Demonstrates layered architecture with Riverpod 2.6 codegen, backend-agnostic platform abstractions, and clean separation of concerns.
 
 ## Quick Start
 
@@ -21,6 +21,26 @@ melos run build_runner
 cd apps/demo_app
 flutter run
 ```
+
+> **Note:** There is no `melos.yaml` file. Melos 7.x reads all config from `pubspec.yaml` — the `workspace:` list and `melos:` scripts section both live there.
+
+## Install the CLI
+
+```bash
+# From within the repo (local development)
+dart pub global activate --source path packages/tooling/cli
+
+# From git (once published)
+dart pub global activate --source git <repo-url> --git-path packages/tooling/cli
+
+# Then use it from anywhere inside the monorepo
+factory doctor
+factory new --name my_app
+factory add-feature --name auth
+factory add-part --name auth --feature auth
+```
+
+The CLI auto-updates the `workspace:` list in root `pubspec.yaml` — no manual editing needed.
 
 ## Architecture
 
@@ -66,30 +86,7 @@ FutureEither<User> getUser(String id) async {
 
 ### Riverpod Notifier Naming
 
-Class name = `Counter` (not `CounterNotifier`), which generates `counterProvider`.
-
-## CLI
-
-Scaffold new apps, features, and parts from the command line:
-
-```bash
-cd packages/tooling/cli
-dart pub get
-
-# Create a new app
-dart run bin/factory.dart new --name my_app
-
-# Add a feature package
-dart run bin/factory.dart add-feature --name todo
-
-# Add a part (UI composition)
-dart run bin/factory.dart add-part --name todo --feature todo
-
-# Check environment
-dart run bin/factory.dart doctor
-```
-
-See [docs/CLI.md](docs/CLI.md) for full CLI documentation.
+Class name = `Counter` (not `CounterNotifier`), which generates `counterProvider`. Uses Riverpod 2.6 codegen with `Ref` (not the deprecated generated ref types).
 
 ## Project Structure
 
@@ -105,7 +102,7 @@ flutter_product_factory/
 │   ├── widgetbook/factory_widgetbook/ # Component catalog
 │   └── tooling/cli/                  # Dart CLI scaffolder
 ├── docs/                            # Architecture & CLI docs
-└── pubspec.yaml                     # Workspace root + Melos config
+└── pubspec.yaml                     # Workspace + Melos config (no melos.yaml)
 ```
 
 ## Commands
@@ -121,11 +118,11 @@ flutter_product_factory/
 ## Technologies
 
 - **Flutter** >= 3.8.0
-- **Riverpod** 2.6+ with codegen
+- **Riverpod** 2.6 with codegen (`@riverpod`)
 - **Freezed** 3.x for immutable models
 - **fpdart** for Either/Option
 - **go_router** for navigation
-- **Melos** for monorepo management
+- **Melos** 7.x for monorepo management (config in `pubspec.yaml`)
 - **Widgetbook** for component catalog
 
 ## License

@@ -4,6 +4,7 @@ import 'package:args/command_runner.dart';
 import 'package:path/path.dart' as p;
 
 import '../templates/part_template.dart';
+import '../utils/workspace_updater.dart';
 
 /// Scaffolds a new part package (UI composition layer).
 class AddPartCommand extends Command<void> {
@@ -53,8 +54,14 @@ class AddPartCommand extends Command<void> {
       featureName: featureName,
       outputPath: packagePath,
     );
+
+    final bool added = addToWorkspace(packagePath);
+    if (added) {
+      stdout.writeln('Added "$packagePath" to workspace in root pubspec.yaml.');
+    }
+
+    stdout.writeln('');
     stdout.writeln('Done! Next steps:');
-    stdout.writeln('  1. Add "$packagePath" to the workspace in root pubspec.yaml');
-    stdout.writeln('  2. Run: melos bootstrap');
+    stdout.writeln('  melos bootstrap');
   }
 }

@@ -4,6 +4,7 @@ import 'package:args/command_runner.dart';
 import 'package:path/path.dart' as p;
 
 import '../templates/app_template.dart';
+import '../utils/workspace_updater.dart';
 
 /// Scaffolds a new Flutter app wired into the monorepo.
 class NewAppCommand extends Command<void> {
@@ -41,9 +42,14 @@ class NewAppCommand extends Command<void> {
 
     stdout.writeln('Creating app "$appName" in $appPath...');
     AppTemplate.generate(appName: appName, outputPath: appPath);
+
+    final bool added = addToWorkspace(appPath);
+    if (added) {
+      stdout.writeln('Added "$appPath" to workspace in root pubspec.yaml.');
+    }
+
+    stdout.writeln('');
     stdout.writeln('Done! Next steps:');
-    stdout.writeln('  1. Add "$appPath" to the workspace in root pubspec.yaml');
-    stdout.writeln('  2. Run: melos bootstrap');
-    stdout.writeln('  3. Run: melos run build_runner');
+    stdout.writeln('  melos bootstrap');
   }
 }

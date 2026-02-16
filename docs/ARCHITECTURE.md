@@ -36,6 +36,15 @@ Packages **only depend downward** — never upward or sideways within the same l
 - A **part** may depend on features, UI, and foundation packages.
 - An **app** wires everything together at the top.
 
+## Avoiding Circular Dependencies
+
+In a modular Riverpod architecture, circular provider dependencies are a common failure mode. Follow these rules:
+
+1. **Never invalidate a provider from a provider it watches.** If provider A watches provider B, then B must not invalidate A. The UI layer is the only place that should trigger `ref.invalidate()`.
+2. **Providers read downward, never upward.** A feature provider must not `ref.watch` a part-level or app-level provider. If you need data from a higher layer, pass it as a parameter.
+3. **Keep `ref.listen` one-directional.** If two providers listen to each other, you have a cycle. Refactor one to take the value as a build argument.
+4. **Test with `ProviderContainer` in isolation.** If you need to override more than 2-3 providers to test a single notifier, your dependency graph is likely too coupled.
+
 ## Package Categories
 
 ### Foundation (`packages/foundation/`)
@@ -115,7 +124,7 @@ Class name `Counter` generates provider `counterProvider`.
 
 ```dart
 @Riverpod(keepAlive: true)
-CounterRepository counterRepository(CounterRepositoryRef ref) {
+CounterRepository counterRepository(Ref ref) {
   throw UnimplementedError('Must be overridden');
 }
 ```
@@ -148,3 +157,13 @@ final class UnauthorizedFailure extends Failure { ... }
 final class ValidationFailure extends Failure { ... }
 final class UnknownFailure extends Failure { ... }
 ```
+
+## Workspace Configuration
+
+This project uses **Melos 7.x** which reads all config from the root `pubspec.yaml`:
+
+- `workspace:` — lists all packages (no glob support, explicit paths)
+- `melos: scripts:` — defines CLI scripts like `analyze`, `test`, `build_runner`
+- Each package has `resolution: workspace` in its `pubspec.yaml`
+
+There is no `melos.yaml` file. The CLI's `factory new`, `add-feature`, and `add-part` commands automatically update the `workspace:` list when scaffolding new packages.
