@@ -1,0 +1,12 @@
+name: factory_analytics
+description: No-op AnalyticsGateway default implementation.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.8.0
+
+resolution: workspace
+
+dependencies:
+  factory_platform_interface:

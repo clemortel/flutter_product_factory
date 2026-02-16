@@ -1,0 +1,20 @@
+name: flutter_product_factory
+publish_to: none
+
+environment:
+  sdk: ^3.8.0
+
+workspace:
+  - packages/foundation/factory_core
+  - packages/foundation/factory_async
+  - packages/foundation/factory_logging
+  - packages/foundation/factory_env
+  - packages/platform/factory_platform_interface
+  - packages/platform/factory_http
+  - packages/platform/factory_storage
+  - packages/platform/factory_analytics
+  - packages/ui/factory_ui
+  - packages/features/feature_counter
+  - packages/parts/counter_part
+  - packages/widgetbook/factory_widgetbook
+  - apps/demo_app

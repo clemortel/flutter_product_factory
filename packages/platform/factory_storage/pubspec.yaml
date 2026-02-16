@@ -1,0 +1,16 @@
+name: factory_storage
+description: KeyValueStore implementations — SharedPreferences and in-memory.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.8.0
+  flutter: ">=3.8.0"
+
+resolution: workspace
+
+dependencies:
+  factory_platform_interface:
+  flutter:
+    sdk: flutter
+  shared_preferences: ^2.3.0

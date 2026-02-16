@@ -1,0 +1,19 @@
+name: factory_cli
+description: CLI tool for scaffolding Flutter Product Factory apps and features.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.8.0
+
+executables:
+  factory:
+    factory
+
+dependencies:
+  args: ^2.5.0
+  path: ^1.9.0
+  yaml: ^3.1.0
+
+dev_dependencies:
+  test: ^1.25.0

@@ -1,0 +1,28 @@
+name: feature_counter
+description: Counter domain feature — model, repository, and Riverpod notifier.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.8.0
+  flutter: ">=3.8.0"
+
+resolution: workspace
+
+dependencies:
+  factory_async:
+  factory_core:
+  factory_platform_interface:
+  flutter:
+    sdk: flutter
+  flutter_riverpod: ^2.6.1
+  freezed_annotation: ^3.0.0
+  riverpod_annotation: ^2.6.1
+
+dev_dependencies:
+  build_runner: ^2.4.0
+  flutter_test:
+    sdk: flutter
+  freezed: ^3.0.0
+  mockito: ^5.4.0
+  riverpod_generator: ^2.6.3

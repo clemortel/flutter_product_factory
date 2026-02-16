@@ -1,0 +1,9 @@
+name: factory_env
+description: Simple environment configuration.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.8.0
+
+resolution: workspace

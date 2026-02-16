@@ -1,0 +1,44 @@
+name: flutter_product_factory
+
+packages:
+  - packages/**
+  - apps/**
+
+scripts:
+  analyze:
+    description: Run dart analyze on all packages
+    run: dart analyze --fatal-infos
+    exec:
+      concurrency: 8
+
+  test:
+    description: Run tests in all packages
+    run: flutter test
+    exec:
+      concurrency: 4
+    packageFilters:
+      dirExists: test
+
+  build_runner:
+    description: Run build_runner in packages that need code generation
+    run: dart run build_runner build --delete-conflicting-outputs
+    exec:
+      concurrency: 1
+    packageFilters:
+      dependsOn: build_runner
+
+  build_runner:watch:
+    description: Watch mode for code generation
+    run: dart run build_runner watch --delete-conflicting-outputs
+    exec:
+      concurrency: 1
+    packageFilters:
+      dependsOn: build_runner
+
+  build_runner:clean:
+    description: Clean generated files
+    run: dart run build_runner clean
+    exec:
+      concurrency: 4
+    packageFilters:
+      dependsOn: build_runner
