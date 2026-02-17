@@ -25,22 +25,20 @@ class HttpApiClient implements ApiClient {
   Uri _buildUri(String path, {Map<String, String>? queryParameters}) =>
       Uri.parse('$baseUrl$path').replace(queryParameters: queryParameters);
 
-  Either<Failure, Map<String, dynamic>> _handleResponse(
-    http.Response response,
-  ) {
+  Result<Map<String, dynamic>> _decodeResponse(http.Response response) {
     if (response.statusCode >= 200 && response.statusCode < 300) {
-      if (response.body.isEmpty) return const Right(<String, dynamic>{});
+      if (response.body.isEmpty) return const Success(<String, dynamic>{});
       final dynamic decoded = jsonDecode(response.body);
-      if (decoded is Map<String, dynamic>) return Right(decoded);
-      return Right(<String, dynamic>{'data': decoded});
+      if (decoded is Map<String, dynamic>) return Success(decoded);
+      return Success(<String, dynamic>{'data': decoded});
     }
     if (response.statusCode == 401) {
-      return const Left(UnauthorizedFailure('Unauthorized'));
+      return const Err(UnauthorizedFailure('Unauthorized'));
     }
     if (response.statusCode == 404) {
-      return const Left(NotFoundFailure('Resource not found'));
+      return const Err(NotFoundFailure('Resource not found'));
     }
-    return Left(
+    return Err(
       ServerFailure(
         'Server error: ${response.statusCode}',
         statusCode: response.statusCode,
@@ -49,71 +47,128 @@ class HttpApiClient implements ApiClient {
   }
 
   @override
-  FutureEither<Map<String, dynamic>> get(
+  FutureResult<T> get<T>(
     String path, {
+    required T Function(Map<String, dynamic> json) fromJson,
     Map<String, String>? headers,
     Map<String, String>? queryParameters,
   }) async {
     try {
-      final response = await _client.get(
+      final http.Response response = await _client.get(
         _buildUri(path, queryParameters: queryParameters),
         headers: _mergeHeaders(headers),
       );
-      return _handleResponse(response);
+      final Result<Map<String, dynamic>> raw = _decodeResponse(response);
+      return switch (raw) {
+        Success(:final value) => Success(fromJson(value)),
+        Err(:final failure) => Err(failure),
+      };
     } catch (e) {
-      return Left(NetworkFailure(e.toString()));
+      return Err(NetworkFailure(e.toString()));
     }
   }
 
   @override
-  FutureEither<Map<String, dynamic>> post(
+  FutureResult<List<T>> getList<T>(
     String path, {
+    required T Function(Map<String, dynamic> json) fromJson,
+    Map<String, String>? headers,
+    Map<String, String>? queryParameters,
+  }) async {
+    try {
+      final http.Response response = await _client.get(
+        _buildUri(path, queryParameters: queryParameters),
+        headers: _mergeHeaders(headers),
+      );
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        final dynamic decoded = jsonDecode(response.body);
+        if (decoded is List) {
+          return Success(
+            decoded
+                .cast<Map<String, dynamic>>()
+                .map(fromJson)
+                .toList(),
+          );
+        }
+        return const Err(
+          ServerFailure('Expected a JSON array response'),
+        );
+      }
+      final Result<Map<String, dynamic>> raw = _decodeResponse(response);
+      return switch (raw) {
+        Success() => const Err(
+            ServerFailure('Expected a JSON array response'),
+          ),
+        Err(:final failure) => Err(failure),
+      };
+    } catch (e) {
+      return Err(NetworkFailure(e.toString()));
+    }
+  }
+
+  @override
+  FutureResult<T> post<T>(
+    String path, {
+    required T Function(Map<String, dynamic> json) fromJson,
     Map<String, String>? headers,
     Map<String, dynamic>? body,
   }) async {
     try {
-      final response = await _client.post(
+      final http.Response response = await _client.post(
         _buildUri(path),
         headers: _mergeHeaders(headers),
         body: body != null ? jsonEncode(body) : null,
       );
-      return _handleResponse(response);
+      final Result<Map<String, dynamic>> raw = _decodeResponse(response);
+      return switch (raw) {
+        Success(:final value) => Success(fromJson(value)),
+        Err(:final failure) => Err(failure),
+      };
     } catch (e) {
-      return Left(NetworkFailure(e.toString()));
+      return Err(NetworkFailure(e.toString()));
     }
   }
 
   @override
-  FutureEither<Map<String, dynamic>> put(
+  FutureResult<T> put<T>(
     String path, {
+    required T Function(Map<String, dynamic> json) fromJson,
     Map<String, String>? headers,
     Map<String, dynamic>? body,
   }) async {
     try {
-      final response = await _client.put(
+      final http.Response response = await _client.put(
         _buildUri(path),
         headers: _mergeHeaders(headers),
         body: body != null ? jsonEncode(body) : null,
       );
-      return _handleResponse(response);
+      final Result<Map<String, dynamic>> raw = _decodeResponse(response);
+      return switch (raw) {
+        Success(:final value) => Success(fromJson(value)),
+        Err(:final failure) => Err(failure),
+      };
     } catch (e) {
-      return Left(NetworkFailure(e.toString()));
+      return Err(NetworkFailure(e.toString()));
     }
   }
 
   @override
-  FutureEither<Map<String, dynamic>> delete(
+  FutureResultVoid delete(
     String path, {
     Map<String, String>? headers,
   }) async {
     try {
-      final response = await _client.delete(
+      final http.Response response = await _client.delete(
         _buildUri(path),
         headers: _mergeHeaders(headers),
       );
-      return _handleResponse(response);
+      final Result<Map<String, dynamic>> raw = _decodeResponse(response);
+      return switch (raw) {
+        Success() => const Success(null),
+        Err(:final failure) => Err(failure),
+      };
     } catch (e) {
-      return Left(NetworkFailure(e.toString()));
+      return Err(NetworkFailure(e.toString()));
     }
   }
 }

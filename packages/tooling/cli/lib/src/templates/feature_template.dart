@@ -2,7 +2,10 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 
-/// Generates a new feature package scaffold.
+/// Generates a new co-located feature package scaffold.
+///
+/// Each feature contains domain logic (models, repositories, providers)
+/// and presentation (page, route) in a single package.
 abstract final class FeatureTemplate {
   static void generate({
     required String featureName,
@@ -30,6 +33,14 @@ abstract final class FeatureTemplate {
       _provider(pascal, featureName),
     );
     _writeFile(
+      p.join(outputPath, 'lib', 'src', 'presentation', '${featureName}_page.dart'),
+      _page(pascal, featureName),
+    );
+    _writeFile(
+      p.join(outputPath, 'lib', 'src', 'presentation', '${featureName}_route.dart'),
+      _route(pascal, featureName),
+    );
+    _writeFile(
       p.join(outputPath, 'test', '${featureName}_test.dart'),
       _test(pkg, pascal, featureName),
     );
@@ -43,7 +54,7 @@ abstract final class FeatureTemplate {
 
   static String _pubspec(String pkg) => '''
 name: $pkg
-description: $pkg domain feature.
+description: $pkg feature — domain logic and UI, co-located.
 version: 0.1.0
 publish_to: none
 
@@ -54,13 +65,13 @@ environment:
 resolution: workspace
 
 dependencies:
-  factory_async:
   factory_core:
-  factory_platform_interface:
+  factory_ui:
   flutter:
     sdk: flutter
   flutter_riverpod: ^2.6.1
   freezed_annotation: ^3.0.0
+  go_router: ^14.0.0
   riverpod_annotation: ^2.6.1
 
 dev_dependencies:
@@ -76,6 +87,8 @@ dev_dependencies:
 library $pkg;
 
 export 'src/models/${name}_state.dart';
+export 'src/presentation/${name}_page.dart';
+export 'src/presentation/${name}_route.dart';
 export 'src/providers/$name.dart';
 export 'src/repositories/${name}_repository.dart';
 export 'src/repositories/fake_${name}_repository.dart';
@@ -96,7 +109,7 @@ abstract class ${pascal}State with _\$${pascal}State {
 import 'package:factory_core/factory_core.dart';
 
 abstract interface class ${pascal}Repository {
-  FutureEither<Unit> fetch();
+  FutureResultVoid fetch();
 }
 ''';
 
@@ -107,12 +120,13 @@ import '${name}_repository.dart';
 
 class Fake${pascal}Repository implements ${pascal}Repository {
   @override
-  FutureEither<Unit> fetch() async => const Right(unit);
+  FutureResultVoid fetch() async => const Success(null);
 }
 ''';
 
   static String _provider(String pascal, String name) => '''
-import 'package:factory_async/factory_async.dart';
+import 'package:factory_core/factory_core.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../models/${name}_state.dart';
@@ -121,7 +135,7 @@ import '../repositories/${name}_repository.dart';
 part '$name.g.dart';
 
 @Riverpod(keepAlive: true)
-${pascal}Repository ${_lowerFirst(pascal)}Repository(${pascal}RepositoryRef ref) {
+${pascal}Repository ${_lowerFirst(pascal)}Repository(Ref ref) {
   throw UnimplementedError(
     '${_lowerFirst(pascal)}RepositoryProvider must be overridden.',
   );
@@ -130,38 +144,74 @@ ${pascal}Repository ${_lowerFirst(pascal)}Repository(${pascal}RepositoryRef ref)
 @riverpod
 class $pascal extends _\$$pascal {
   @override
-  AsyncState<${pascal}State> build() {
-    _fetch();
-    return const AsyncState.loading();
-  }
-
-  Future<void> _fetch() async {
+  Future<${pascal}State> build() async {
     final repo = ref.read(${_lowerFirst(pascal)}RepositoryProvider);
-    final result = await repo.fetch();
-    result.fold(
-      (failure) => state = AsyncState.error(failure),
-      (_) => state = const AsyncState.success(${pascal}State()),
-    );
+    final Result<void> result = await repo.fetch();
+    return switch (result) {
+      Success() => const ${pascal}State(),
+      Err(:final failure) => throw FailureException(failure),
+    };
   }
+}
 
-  Future<void> refresh() async {
-    state = const AsyncState.loading();
-    await _fetch();
+/// Wraps a [Failure] as an [Exception] for [AsyncValue.guard].
+class FailureException implements Exception {
+  const FailureException(this.failure);
+  final Failure failure;
+
+  @override
+  String toString() => failure.toString();
+}
+''';
+
+  static String _page(String pascal, String featureName) => '''
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../models/${featureName}_state.dart';
+import '../providers/$featureName.dart';
+
+class ${pascal}Page extends ConsumerWidget {
+  const ${pascal}Page({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final AsyncValue<${pascal}State> asyncState =
+        ref.watch(${_lowerFirst(pascal)}Provider);
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('$pascal')),
+      body: Center(
+        child: asyncState.when(
+          loading: () => const CircularProgressIndicator(),
+          data: (${pascal}State data) =>
+              const Text('$pascal page — replace with your UI'),
+          error: (Object error, _) => Text('Error: \$error'),
+        ),
+      ),
+    );
   }
 }
 ''';
 
+  static String _route(String pascal, String name) => '''
+import 'package:go_router/go_router.dart';
+
+import '${name}_page.dart';
+
+final GoRoute ${_lowerFirst(pascal)}Route = GoRoute(
+  path: '/$name',
+  name: '$name',
+  builder: (context, state) => const ${pascal}Page(),
+);
+''';
+
   static String _test(String pkg, String pascal, String name) => '''
-import 'package:factory_async/factory_async.dart';
-import 'package:factory_core/factory_core.dart';
 import 'package:$pkg/$pkg.dart';
-import 'package:$pkg/src/providers/$name.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  provideDummy<Either<Failure, Unit>>(const Right(unit));
-
   group('$pascal notifier', () {
     late Fake${pascal}Repository fakeRepository;
     late ProviderContainer container;
@@ -177,10 +227,10 @@ void main() {
 
     tearDown(() => container.dispose());
 
-    test('should transition to success after fetch', () async {
-      await Future<void>.delayed(Duration.zero);
+    test('should transition to success after build', () async {
+      await container.read(${_lowerFirst(pascal)}Provider.future);
       final state = container.read(${_lowerFirst(pascal)}Provider);
-      expect(state, isA<AsyncStateSuccess<${pascal}State>>());
+      expect(state, isA<AsyncData<${pascal}State>>());
     });
   });
 }

@@ -7,23 +7,23 @@ class FakeCounterRepository implements CounterRepository {
   int _count = 0;
 
   @override
-  FutureEither<int> getCount() async => Right(_count);
+  FutureResult<int> getCount() async => Success(_count);
 
   @override
-  FutureEither<int> increment(int currentCount) async {
+  FutureResult<int> increment(int currentCount) async {
     _count = currentCount + 1;
-    return Right(_count);
+    return Success(_count);
   }
 
   @override
-  FutureEither<int> decrement(int currentCount) async {
+  FutureResult<int> decrement(int currentCount) async {
     _count = currentCount - 1;
-    return Right(_count);
+    return Success(_count);
   }
 
   @override
-  FutureEither<int> reset() async {
+  FutureResult<int> reset() async {
     _count = 0;
-    return Right(_count);
+    return Success(_count);
   }
 }

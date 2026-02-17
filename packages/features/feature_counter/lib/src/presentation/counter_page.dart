@@ -1,8 +1,9 @@
-import 'package:factory_async/factory_async.dart';
 import 'package:factory_ui/factory_ui.dart';
-import 'package:feature_counter/feature_counter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../models/counter_state.dart';
+import '../providers/counter.dart';
 
 /// Full-screen counter page consuming [counterProvider].
 class CounterPage extends ConsumerWidget {
@@ -10,31 +11,29 @@ class CounterPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final AsyncState<CounterState> asyncState = ref.watch(counterProvider);
+    final AsyncValue<CounterState> asyncState = ref.watch(counterProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Counter')),
       body: Center(
-        child: switch (asyncState) {
-          AsyncStateIdle() ||
-          AsyncStateLoading() =>
-            const CircularProgressIndicator(),
-          AsyncStateSuccess(:final data) => _CounterBody(state: data),
-          AsyncStateError(:final failure) => Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Error: ${failure.message}',
-                  style: Theme.of(context).textTheme.bodyLarge,
-                ),
-                const SizedBox(height: FactorySpacing.md),
-                FactoryButton(
-                  label: 'Retry',
-                  onPressed: () => ref.invalidate(counterProvider),
-                ),
-              ],
-            ),
-        },
+        child: asyncState.when(
+          loading: () => const CircularProgressIndicator(),
+          data: (CounterState data) => _CounterBody(state: data),
+          error: (Object error, _) => Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Error: $error',
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+              const SizedBox(height: FactorySpacing.md),
+              FactoryButton(
+                label: 'Retry',
+                onPressed: () => ref.invalidate(counterProvider),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

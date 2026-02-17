@@ -9,44 +9,67 @@ class FakeApiClient implements ApiClient {
   final Map<String, Map<String, dynamic>> _store = {};
 
   @override
-  FutureEither<Map<String, dynamic>> get(
+  FutureResult<T> get<T>(
     String path, {
+    required T Function(Map<String, dynamic> json) fromJson,
     Map<String, String>? headers,
     Map<String, String>? queryParameters,
   }) async {
-    final data = _store[path];
+    final Map<String, dynamic>? data = _store[path];
     if (data == null) {
-      return const Left(NotFoundFailure('Not found'));
+      return const Err(NotFoundFailure('Not found'));
     }
-    return Right(data);
+    return Success(fromJson(data));
   }
 
   @override
-  FutureEither<Map<String, dynamic>> post(
+  FutureResult<List<T>> getList<T>(
     String path, {
+    required T Function(Map<String, dynamic> json) fromJson,
+    Map<String, String>? headers,
+    Map<String, String>? queryParameters,
+  }) async {
+    final Map<String, dynamic>? data = _store[path];
+    if (data == null) {
+      return const Err(NotFoundFailure('Not found'));
+    }
+    final List<dynamic>? items = data['items'] as List<dynamic>?;
+    if (items == null) return const Success([]);
+    return Success(
+      items.cast<Map<String, dynamic>>().map(fromJson).toList(),
+    );
+  }
+
+  @override
+  FutureResult<T> post<T>(
+    String path, {
+    required T Function(Map<String, dynamic> json) fromJson,
     Map<String, String>? headers,
     Map<String, dynamic>? body,
   }) async {
-    _store[path] = body ?? {};
-    return Right(body ?? {});
+    final Map<String, dynamic> data = body ?? {};
+    _store[path] = data;
+    return Success(fromJson(data));
   }
 
   @override
-  FutureEither<Map<String, dynamic>> put(
+  FutureResult<T> put<T>(
     String path, {
+    required T Function(Map<String, dynamic> json) fromJson,
     Map<String, String>? headers,
     Map<String, dynamic>? body,
   }) async {
-    _store[path] = body ?? {};
-    return Right(body ?? {});
+    final Map<String, dynamic> data = body ?? {};
+    _store[path] = data;
+    return Success(fromJson(data));
   }
 
   @override
-  FutureEither<Map<String, dynamic>> delete(
+  FutureResultVoid delete(
     String path, {
     Map<String, String>? headers,
   }) async {
     _store.remove(path);
-    return const Right(<String, dynamic>{});
+    return const Success(null);
   }
 }

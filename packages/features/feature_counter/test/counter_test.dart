@@ -1,13 +1,8 @@
-import 'package:factory_async/factory_async.dart';
-import 'package:factory_core/factory_core.dart';
 import 'package:feature_counter/feature_counter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/mockito.dart';
 
 void main() {
-  provideDummy<Either<Failure, int>>(const Right(0));
-
   group('Counter notifier', () {
     late FakeCounterRepository fakeRepository;
     late ProviderContainer container;
@@ -24,49 +19,49 @@ void main() {
     tearDown(() => container.dispose());
 
     test('should start in loading state on build', () {
-      final AsyncState<CounterState> state =
+      final AsyncValue<CounterState> state =
           container.read(counterProvider);
-      expect(state, isA<AsyncStateLoading<CounterState>>());
+      expect(state, isA<AsyncLoading<CounterState>>());
     });
 
-    test('should emit success state after refresh', () async {
-      // Use refresh() which is awaitable.
-      await container.read(counterProvider.notifier).refresh();
+    test('should emit success state after build completes', () async {
+      // Wait for the async build to complete.
+      await container.read(counterProvider.future);
 
-      final AsyncState<CounterState> state =
+      final AsyncValue<CounterState> state =
           container.read(counterProvider);
-      expect(state, isA<AsyncStateSuccess<CounterState>>());
-      expect(state.dataOrNull?.count, 0);
+      expect(state, isA<AsyncData<CounterState>>());
+      expect(state.valueOrNull?.count, 0);
     });
 
     test('should increment the counter', () async {
-      await container.read(counterProvider.notifier).refresh();
+      await container.read(counterProvider.future);
       await container.read(counterProvider.notifier).increment();
 
-      final AsyncState<CounterState> state =
+      final AsyncValue<CounterState> state =
           container.read(counterProvider);
-      expect(state.dataOrNull?.count, 1);
+      expect(state.valueOrNull?.count, 1);
     });
 
     test('should decrement the counter', () async {
-      await container.read(counterProvider.notifier).refresh();
+      await container.read(counterProvider.future);
       await container.read(counterProvider.notifier).increment();
       await container.read(counterProvider.notifier).decrement();
 
-      final AsyncState<CounterState> state =
+      final AsyncValue<CounterState> state =
           container.read(counterProvider);
-      expect(state.dataOrNull?.count, 0);
+      expect(state.valueOrNull?.count, 0);
     });
 
     test('should reset the counter', () async {
-      await container.read(counterProvider.notifier).refresh();
+      await container.read(counterProvider.future);
       await container.read(counterProvider.notifier).increment();
       await container.read(counterProvider.notifier).increment();
       await container.read(counterProvider.notifier).reset();
 
-      final AsyncState<CounterState> state =
+      final AsyncValue<CounterState> state =
           container.read(counterProvider);
-      expect(state.dataOrNull?.count, 0);
+      expect(state.valueOrNull?.count, 0);
     });
   });
 }

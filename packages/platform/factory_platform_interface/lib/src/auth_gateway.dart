@@ -6,16 +6,16 @@ import 'package:factory_core/factory_core.dart';
 /// (Firebase Auth, Supabase Auth, custom backend, etc.).
 abstract interface class AuthGateway {
   /// Returns the current user's ID, or null if not authenticated.
-  FutureEither<String?> currentUserId();
+  FutureResult<String?> currentUserId();
 
   /// Signs in with email and password.
-  FutureEither<String> signInWithEmail({
+  FutureResult<String> signInWithEmail({
     required String email,
     required String password,
   });
 
   /// Signs out the current user.
-  FutureEitherVoid signOut();
+  FutureResultVoid signOut();
 
   /// Stream of authentication state changes.
   Stream<String?> authStateChanges();

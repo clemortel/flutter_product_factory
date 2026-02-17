@@ -1,4 +1,4 @@
-import 'package:counter_part/counter_part.dart';
+import 'package:feature_counter/feature_counter.dart';
 import 'package:go_router/go_router.dart';
 
 /// Application router configuration.

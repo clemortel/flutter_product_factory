@@ -10,9 +10,7 @@ environment:
 resolution: workspace
 
 dependencies:
-  counter_part:
   factory_analytics:
-  factory_async:
   factory_http:
   factory_storage:
   factory_ui:
