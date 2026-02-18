@@ -1,4 +1,4 @@
-name: factory_platform_interface
+name: platform_interface
 description: Abstract interfaces for platform services (API, Auth, Analytics, Storage).
 version: 0.1.0
 publish_to: none
@@ -9,4 +9,4 @@ environment:
 resolution: workspace
 
 dependencies:
-  factory_core:
+  core:

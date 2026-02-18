@@ -1,4 +1,4 @@
-name: factory_http
+name: http_client
 description: HTTP-based ApiClient implementation and in-memory fake.
 version: 0.1.0
 publish_to: none
@@ -9,6 +9,6 @@ environment:
 resolution: workspace
 
 dependencies:
-  factory_core:
-  factory_platform_interface:
+  core:
+  platform_interface:
   http: ^1.2.0

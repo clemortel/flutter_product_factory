@@ -1,4 +1,4 @@
-import 'package:factory_platform_interface/factory_platform_interface.dart';
+import 'package:platform_interface/platform_interface.dart';
 
 /// In-memory [KeyValueStore] for testing and demos.
 ///

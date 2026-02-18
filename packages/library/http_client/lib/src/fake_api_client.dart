@@ -1,5 +1,5 @@
-import 'package:factory_core/factory_core.dart';
-import 'package:factory_platform_interface/factory_platform_interface.dart';
+import 'package:core/core.dart';
+import 'package:platform_interface/platform_interface.dart';
 
 /// In-memory fake [ApiClient] for demos and testing.
 ///
@@ -17,9 +17,9 @@ class FakeApiClient implements ApiClient {
   }) async {
     final Map<String, dynamic>? data = _store[path];
     if (data == null) {
-      return const Err(NotFoundFailure('Not found'));
+      return const Left(NotFoundFailure('Not found'));
     }
-    return Success(fromJson(data));
+    return Right(fromJson(data));
   }
 
   @override
@@ -31,11 +31,11 @@ class FakeApiClient implements ApiClient {
   }) async {
     final Map<String, dynamic>? data = _store[path];
     if (data == null) {
-      return const Err(NotFoundFailure('Not found'));
+      return const Left(NotFoundFailure('Not found'));
     }
     final List<dynamic>? items = data['items'] as List<dynamic>?;
-    if (items == null) return const Success([]);
-    return Success(
+    if (items == null) return const Right([]);
+    return Right(
       items.cast<Map<String, dynamic>>().map(fromJson).toList(),
     );
   }
@@ -49,7 +49,7 @@ class FakeApiClient implements ApiClient {
   }) async {
     final Map<String, dynamic> data = body ?? {};
     _store[path] = data;
-    return Success(fromJson(data));
+    return Right(fromJson(data));
   }
 
   @override
@@ -61,7 +61,7 @@ class FakeApiClient implements ApiClient {
   }) async {
     final Map<String, dynamic> data = body ?? {};
     _store[path] = data;
-    return Success(fromJson(data));
+    return Right(fromJson(data));
   }
 
   @override
@@ -70,6 +70,6 @@ class FakeApiClient implements ApiClient {
     Map<String, String>? headers,
   }) async {
     _store.remove(path);
-    return const Success(null);
+    return const Right(unit);
   }
 }

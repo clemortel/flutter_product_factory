@@ -1,4 +1,4 @@
-import 'package:factory_core/factory_core.dart';
+import 'package:core/core.dart';
 
 /// Backend-agnostic HTTP client contract.
 ///

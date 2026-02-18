@@ -1,4 +1,4 @@
 /// No-op AnalyticsGateway default implementation.
-library factory_analytics;
+library analytics;
 
 export 'src/noop_analytics.dart';

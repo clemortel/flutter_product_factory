@@ -1,5 +1,6 @@
-import 'package:demo_app/app.dart';
-import 'package:feature_counter/feature_counter.dart';
+import 'package:app/app.dart';
+import 'package:app/features/counter/counter_notifier.dart';
+import 'package:app/features/counter/fake_counter_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -12,7 +13,7 @@ void main() {
             FakeCounterRepository(),
           ),
         ],
-        child: const App(),
+        child: App(),
       ),
     );
 
@@ -31,7 +32,7 @@ void main() {
             FakeCounterRepository(),
           ),
         ],
-        child: const App(),
+        child: App(),
       ),
     );
     await tester.pumpAndSettle();

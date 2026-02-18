@@ -2,7 +2,7 @@
 ///
 /// This package has zero business logic dependencies and can be
 /// published independently.
-library factory_ui;
+library ui;
 
 export 'src/theme/factory_theme.dart';
 export 'src/tokens/colors.dart';

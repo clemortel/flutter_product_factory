@@ -1,5 +1,5 @@
-name: factory_core
-description: Core utilities — Failure type, Result type, and common typedefs.
+name: core
+description: Core utilities — Failure type, Either typedefs, and common typedefs.
 version: 0.1.0
 publish_to: none
 
@@ -7,3 +7,6 @@ environment:
   sdk: ^3.8.0
 
 resolution: workspace
+
+dependencies:
+  fpdart: ^1.2.0

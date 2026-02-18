@@ -1,4 +1,4 @@
-name: factory_ui
+name: ui
 description: Design tokens, theme, and base widgets. Zero business logic dependencies.
 version: 0.1.0
 publish_to: none

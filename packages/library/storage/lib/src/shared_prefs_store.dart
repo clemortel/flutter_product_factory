@@ -1,4 +1,4 @@
-import 'package:factory_platform_interface/factory_platform_interface.dart';
+import 'package:platform_interface/platform_interface.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// [KeyValueStore] backed by SharedPreferences.

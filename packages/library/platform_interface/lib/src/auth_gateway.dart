@@ -1,4 +1,4 @@
-import 'package:factory_core/factory_core.dart';
+import 'package:core/core.dart';
 
 /// Authentication gateway contract.
 ///

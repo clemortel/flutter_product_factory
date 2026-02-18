@@ -1,11 +1,13 @@
-import 'package:factory_ui/factory_ui.dart';
 import 'package:flutter/material.dart';
+import 'package:ui/ui.dart';
 
-import 'router.dart';
+import 'router/app_router.dart';
 
 /// Root application widget.
 class App extends StatelessWidget {
-  const App({super.key});
+  App({super.key});
+
+  final AppRouter _appRouter = AppRouter();
 
   @override
   Widget build(BuildContext context) {
@@ -13,7 +15,7 @@ class App extends StatelessWidget {
       title: 'Factory Demo',
       theme: FactoryTheme.light(),
       darkTheme: FactoryTheme.dark(),
-      routerConfig: appRouter,
+      routerConfig: _appRouter.config(),
       debugShowCheckedModeBanner: false,
     );
   }

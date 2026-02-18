@@ -11,7 +11,10 @@ abstract final class AppTemplate {
     _writeFile(p.join(outputPath, 'pubspec.yaml'), _pubspec(appName));
     _writeFile(p.join(outputPath, 'lib', 'main.dart'), _main(appName));
     _writeFile(p.join(outputPath, 'lib', 'app.dart'), _app(appName));
-    _writeFile(p.join(outputPath, 'lib', 'router.dart'), _router());
+    _writeFile(
+      p.join(outputPath, 'lib', 'router', 'app_router.dart'),
+      _router(),
+    );
     _writeFile(p.join(outputPath, 'test', 'app_test.dart'), _test(appName));
   }
 
@@ -34,15 +37,22 @@ environment:
 resolution: workspace
 
 dependencies:
-  factory_ui:
+  auto_route: ^9.3.0
+  core:
+  ui:
   flutter:
     sdk: flutter
   flutter_riverpod: ^2.6.1
-  go_router: ^14.0.0
+  freezed_annotation: ^3.0.0
+  riverpod_annotation: ^2.6.1
 
 dev_dependencies:
+  auto_route_generator: ^9.3.0
+  build_runner: ^2.4.0
   flutter_test:
     sdk: flutter
+  freezed: ^3.0.0
+  riverpod_generator: ^2.6.3
 ''';
 
   static String _main(String name) => '''
@@ -65,13 +75,15 @@ void main() {
   static String _app(String name) {
     final String title = _snakeToTitle(name);
     return '''
-import 'package:factory_ui/factory_ui.dart';
 import 'package:flutter/material.dart';
+import 'package:ui/ui.dart';
 
-import 'router.dart';
+import 'router/app_router.dart';
 
 class App extends StatelessWidget {
-  const App({super.key});
+  App({super.key});
+
+  final AppRouter _appRouter = AppRouter();
 
   @override
   Widget build(BuildContext context) {
@@ -79,7 +91,7 @@ class App extends StatelessWidget {
       title: '$title',
       theme: FactoryTheme.light(),
       darkTheme: FactoryTheme.dark(),
-      routerConfig: appRouter,
+      routerConfig: _appRouter.config(),
       debugShowCheckedModeBanner: false,
     );
   }
@@ -88,18 +100,17 @@ class App extends StatelessWidget {
   }
 
   static String _router() => '''
-import 'package:go_router/go_router.dart';
+import 'package:auto_route/auto_route.dart';
 
-final GoRouter appRouter = GoRouter(
-  initialLocation: '/',
-  routes: [
-    GoRoute(
-      path: '/',
-      name: 'home',
-      builder: (context, state) => const Placeholder(),
-    ),
-  ],
-);
+part 'app_router.gr.dart';
+
+@AutoRouterConfig()
+class AppRouter extends RootStackRouter {
+  @override
+  List<AutoRoute> get routes => [
+        // Add routes here
+      ];
+}
 ''';
 
   static String _test(String name) => '''
@@ -110,7 +121,7 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   testWidgets('App renders without crashing', (WidgetTester tester) async {
     await tester.pumpWidget(
-      const ProviderScope(
+      ProviderScope(
         child: App(),
       ),
     );

@@ -5,15 +5,13 @@ environment:
   sdk: ^3.8.0
 
 workspace:
-  - packages/foundation/factory_core
-  - packages/platform/factory_platform_interface
-  - packages/platform/factory_http
-  - packages/platform/factory_storage
-  - packages/platform/factory_analytics
-  - packages/ui/factory_ui
-  - packages/features/feature_counter
-  - packages/widgetbook/factory_widgetbook
-  - apps/demo_app
+  - packages/library/core
+  - packages/library/platform_interface
+  - packages/library/http_client
+  - packages/library/storage
+  - packages/library/analytics
+  - packages/parts/ui
+  - apps/app
 
 dev_dependencies:
   melos: ^7.0.0
