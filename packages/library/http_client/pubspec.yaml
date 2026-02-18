@@ -11,4 +11,5 @@ resolution: workspace
 dependencies:
   core:
   platform_interface:
-  http: ^1.2.0
+  dio: ^5.9.0
+  talker_dio_logger: ^4.5.0

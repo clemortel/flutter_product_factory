@@ -1,51 +1,54 @@
-import 'dart:convert';
-
 import 'package:core/core.dart';
+import 'package:dio/dio.dart';
 import 'package:platform_interface/platform_interface.dart';
-import 'package:http/http.dart' as http;
+import 'package:talker_dio_logger/talker_dio_logger.dart';
 
-/// HTTP implementation of [ApiClient] using `package:http`.
+/// HTTP implementation of [ApiClient] using [Dio].
 class HttpApiClient implements ApiClient {
   HttpApiClient({
-    required this.baseUrl,
-    http.Client? httpClient,
-    this.defaultHeaders = const {},
-  }) : _client = httpClient ?? http.Client();
-
-  final String baseUrl;
-  final http.Client _client;
-  final Map<String, String> defaultHeaders;
-
-  Map<String, String> _mergeHeaders(Map<String, String>? headers) => {
-        'Content-Type': 'application/json',
-        ...defaultHeaders,
-        if (headers != null) ...headers,
-      };
-
-  Uri _buildUri(String path, {Map<String, String>? queryParameters}) =>
-      Uri.parse('$baseUrl$path').replace(queryParameters: queryParameters);
-
-  Either<Failure, Map<String, dynamic>> _decodeResponse(
-    http.Response response,
-  ) {
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      if (response.body.isEmpty) return const Right(<String, dynamic>{});
-      final dynamic decoded = jsonDecode(response.body);
-      if (decoded is Map<String, dynamic>) return Right(decoded);
-      return Right(<String, dynamic>{'data': decoded});
+    required String baseUrl,
+    Dio? dio,
+    Talker? talker,
+    Map<String, String> defaultHeaders = const {},
+  }) : _dio = dio ??
+            Dio(
+              BaseOptions(
+                baseUrl: baseUrl,
+                headers: <String, String>{
+                  'Content-Type': 'application/json',
+                  ...defaultHeaders,
+                },
+              ),
+            ) {
+    if (talker != null) {
+      _dio.interceptors.add(TalkerDioLogger(talker: talker));
     }
-    if (response.statusCode == 401) {
-      return const Left(UnauthorizedFailure('Unauthorized'));
+  }
+
+  final Dio _dio;
+
+  Either<Failure, Map<String, dynamic>> _decodeResponse(Response<dynamic> response) {
+    final dynamic data = response.data;
+    if (data is Map<String, dynamic>) return Right(data);
+    if (data == null) return const Right(<String, dynamic>{});
+    return Right(<String, dynamic>{'data': data});
+  }
+
+  Failure _mapDioException(DioException e) {
+    final int? statusCode = e.response?.statusCode;
+    if (statusCode == 401) {
+      return const UnauthorizedFailure('Unauthorized');
     }
-    if (response.statusCode == 404) {
-      return const Left(NotFoundFailure('Resource not found'));
+    if (statusCode == 404) {
+      return const NotFoundFailure('Resource not found');
     }
-    return Left(
-      ServerFailure(
-        'Server error: ${response.statusCode}',
-        statusCode: response.statusCode,
-      ),
-    );
+    if (statusCode != null && statusCode >= 400) {
+      return ServerFailure(
+        'Server error: $statusCode',
+        statusCode: statusCode,
+      );
+    }
+    return NetworkFailure(e.message ?? e.toString());
   }
 
   @override
@@ -56,18 +59,18 @@ class HttpApiClient implements ApiClient {
     Map<String, String>? queryParameters,
   }) async {
     try {
-      final http.Response response = await _client.get(
-        _buildUri(path, queryParameters: queryParameters),
-        headers: _mergeHeaders(headers),
+      final Response<dynamic> response = await _dio.get<dynamic>(
+        path,
+        options: headers != null ? Options(headers: headers) : null,
+        queryParameters: queryParameters,
       );
-      final Either<Failure, Map<String, dynamic>> raw =
-          _decodeResponse(response);
+      final Either<Failure, Map<String, dynamic>> raw = _decodeResponse(response);
       return raw.match(
-        (failure) => Left(failure),
-        (value) => Right(fromJson(value)),
+        (Failure failure) => Left(failure),
+        (Map<String, dynamic> value) => Right(fromJson(value)),
       );
-    } catch (e) {
-      return Left(NetworkFailure(e.toString()));
+    } on DioException catch (e) {
+      return Left(_mapDioException(e));
     }
   }
 
@@ -79,32 +82,22 @@ class HttpApiClient implements ApiClient {
     Map<String, String>? queryParameters,
   }) async {
     try {
-      final http.Response response = await _client.get(
-        _buildUri(path, queryParameters: queryParameters),
-        headers: _mergeHeaders(headers),
+      final Response<dynamic> response = await _dio.get<dynamic>(
+        path,
+        options: headers != null ? Options(headers: headers) : null,
+        queryParameters: queryParameters,
       );
-      if (response.statusCode >= 200 && response.statusCode < 300) {
-        final dynamic decoded = jsonDecode(response.body);
-        if (decoded is List) {
-          return Right(
-            decoded
-                .cast<Map<String, dynamic>>()
-                .map(fromJson)
-                .toList(),
-          );
-        }
-        return const Left(
-          ServerFailure('Expected a JSON array response'),
+      final dynamic data = response.data;
+      if (data is List) {
+        return Right(
+          data.cast<Map<String, dynamic>>().map(fromJson).toList(),
         );
       }
-      final Either<Failure, Map<String, dynamic>> raw =
-          _decodeResponse(response);
-      return raw.match(
-        (failure) => Left(failure),
-        (_) => const Left(ServerFailure('Expected a JSON array response')),
+      return const Left(
+        ServerFailure('Expected a JSON array response'),
       );
-    } catch (e) {
-      return Left(NetworkFailure(e.toString()));
+    } on DioException catch (e) {
+      return Left(_mapDioException(e));
     }
   }
 
@@ -116,19 +109,18 @@ class HttpApiClient implements ApiClient {
     Map<String, dynamic>? body,
   }) async {
     try {
-      final http.Response response = await _client.post(
-        _buildUri(path),
-        headers: _mergeHeaders(headers),
-        body: body != null ? jsonEncode(body) : null,
+      final Response<dynamic> response = await _dio.post<dynamic>(
+        path,
+        data: body,
+        options: headers != null ? Options(headers: headers) : null,
       );
-      final Either<Failure, Map<String, dynamic>> raw =
-          _decodeResponse(response);
+      final Either<Failure, Map<String, dynamic>> raw = _decodeResponse(response);
       return raw.match(
-        (failure) => Left(failure),
-        (value) => Right(fromJson(value)),
+        (Failure failure) => Left(failure),
+        (Map<String, dynamic> value) => Right(fromJson(value)),
       );
-    } catch (e) {
-      return Left(NetworkFailure(e.toString()));
+    } on DioException catch (e) {
+      return Left(_mapDioException(e));
     }
   }
 
@@ -140,19 +132,18 @@ class HttpApiClient implements ApiClient {
     Map<String, dynamic>? body,
   }) async {
     try {
-      final http.Response response = await _client.put(
-        _buildUri(path),
-        headers: _mergeHeaders(headers),
-        body: body != null ? jsonEncode(body) : null,
+      final Response<dynamic> response = await _dio.put<dynamic>(
+        path,
+        data: body,
+        options: headers != null ? Options(headers: headers) : null,
       );
-      final Either<Failure, Map<String, dynamic>> raw =
-          _decodeResponse(response);
+      final Either<Failure, Map<String, dynamic>> raw = _decodeResponse(response);
       return raw.match(
-        (failure) => Left(failure),
-        (value) => Right(fromJson(value)),
+        (Failure failure) => Left(failure),
+        (Map<String, dynamic> value) => Right(fromJson(value)),
       );
-    } catch (e) {
-      return Left(NetworkFailure(e.toString()));
+    } on DioException catch (e) {
+      return Left(_mapDioException(e));
     }
   }
 
@@ -162,18 +153,13 @@ class HttpApiClient implements ApiClient {
     Map<String, String>? headers,
   }) async {
     try {
-      final http.Response response = await _client.delete(
-        _buildUri(path),
-        headers: _mergeHeaders(headers),
+      await _dio.delete<dynamic>(
+        path,
+        options: headers != null ? Options(headers: headers) : null,
       );
-      final Either<Failure, Map<String, dynamic>> raw =
-          _decodeResponse(response);
-      return raw.match(
-        (failure) => Left(failure),
-        (_) => const Right(unit),
-      );
-    } catch (e) {
-      return Left(NetworkFailure(e.toString()));
+      return const Right(unit);
+    } on DioException catch (e) {
+      return Left(_mapDioException(e));
     }
   }
 }

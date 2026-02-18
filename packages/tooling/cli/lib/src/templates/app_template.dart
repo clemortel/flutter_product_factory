@@ -15,6 +15,9 @@ abstract final class AppTemplate {
       p.join(outputPath, 'lib', 'router', 'app_router.dart'),
       _router(),
     );
+    _writeFile(p.join(outputPath, 'lib', 'env', 'env.dart'), _env());
+    _writeFile(p.join(outputPath, '.env'), _dotEnv());
+    _writeFile(p.join(outputPath, '.env.example'), _dotEnv());
     _writeFile(p.join(outputPath, 'test', 'app_test.dart'), _test(appName));
   }
 
@@ -39,6 +42,8 @@ resolution: workspace
 dependencies:
   auto_route: ^9.3.0
   core:
+  envied: ^1.1.1
+  http_client:
   ui:
   flutter:
     sdk: flutter
@@ -49,6 +54,7 @@ dependencies:
 dev_dependencies:
   auto_route_generator: ^9.3.0
   build_runner: ^2.4.0
+  envied_generator: ^1.1.1
   flutter_test:
     sdk: flutter
   freezed: ^3.0.0
@@ -56,13 +62,23 @@ dev_dependencies:
 ''';
 
   static String _main(String name) => '''
+import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'app.dart';
+import 'env/env.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+
+  final EnvConfig envConfig = EnvConfig(
+    apiBaseUrl: Env.apiBaseUrl,
+    environment: Env.environment,
+  );
+
+  final Talker talker = Talker();
+  talker.info('Starting app in \${envConfig.environment} mode');
 
   runApp(
     const ProviderScope(
@@ -111,6 +127,26 @@ class AppRouter extends RootStackRouter {
         // Add routes here
       ];
 }
+''';
+
+  static String _env() => '''
+import 'package:envied/envied.dart';
+
+part 'env.g.dart';
+
+@Envied(path: '.env')
+abstract class Env {
+  @EnviedField(varName: 'API_BASE_URL')
+  static const String apiBaseUrl = _Env.apiBaseUrl;
+
+  @EnviedField(varName: 'ENVIRONMENT', defaultValue: 'development')
+  static const String environment = _Env.environment;
+}
+''';
+
+  static String _dotEnv() => '''
+API_BASE_URL=https://api-dev.example.com
+ENVIRONMENT=development
 ''';
 
   static String _test(String name) => '''

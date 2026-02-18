@@ -13,6 +13,7 @@ dependencies:
   analytics:
   auto_route: ^9.3.0
   core:
+  envied: ^1.1.1
   http_client:
   storage:
   ui:
@@ -25,8 +26,34 @@ dependencies:
 dev_dependencies:
   auto_route_generator: ^9.3.0
   build_runner: ^2.4.0
+  envied_generator: ^1.1.1
   flutter_test:
     sdk: flutter
   freezed: ^3.0.0
   mockito: ^5.4.0
+  flutter_flavorizr: ^2.2.3
   riverpod_generator: ^2.6.3
+
+flavorizr:
+  flavors:
+    dev:
+      app:
+        name: "Factory Demo Dev"
+      android:
+        applicationId: "com.example.factorydemo.dev"
+      ios:
+        bundleId: "com.example.factorydemo.dev"
+    staging:
+      app:
+        name: "Factory Demo Staging"
+      android:
+        applicationId: "com.example.factorydemo.staging"
+      ios:
+        bundleId: "com.example.factorydemo.staging"
+    production:
+      app:
+        name: "Factory Demo"
+      android:
+        applicationId: "com.example.factorydemo"
+      ios:
+        bundleId: "com.example.factorydemo"
